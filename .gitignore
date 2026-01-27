@@ -1,0 +1,25 @@
+# Environment & Secrets
+.env
+.env.*
+
+# Python
+venv/
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+
+# Logs
+*.log
+alerts.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Test files
+test_*.py
+!test_discord.py

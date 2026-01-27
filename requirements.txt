@@ -1,0 +1,4 @@
+discord.py-self==2.0.1
+aiosmtplib==3.0.1
+python-dotenv==1.0.1
+audioop-lts==0.2.2
