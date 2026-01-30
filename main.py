@@ -129,18 +129,34 @@ Link: {message_link}
         email.attach(MIMEText(plain_body, "plain"))
         email.attach(MIMEText(html_body, "html"))
 
-        try:
-            await aiosmtplib.send(
-                email,
-                hostname=SMTP_HOST,
-                port=SMTP_PORT,
-                username=SMTP_USER,
-                password=SMTP_PASS,
-                start_tls=True,
-            )
-            logger.info(f"Email alert sent to {EMAIL_TO}")
-        except Exception as e:
-            logger.error(f"Failed to send email: {e}")
+        # Retry with exponential backoff: 3 attempts, delays of 1s, 2s, 4s
+        max_attempts = 3
+        backoff_delays = [1, 2, 4]  # seconds
+
+        for attempt in range(1, max_attempts + 1):
+            try:
+                await aiosmtplib.send(
+                    email,
+                    hostname=SMTP_HOST,
+                    port=SMTP_PORT,
+                    username=SMTP_USER,
+                    password=SMTP_PASS,
+                    start_tls=True,
+                )
+                logger.info(f"Email alert sent to {EMAIL_TO}")
+                return  # Success, exit the retry loop
+            except Exception as e:
+                if attempt < max_attempts:
+                    delay = backoff_delays[attempt - 1]
+                    logger.warning(
+                        f"Email send failed (attempt {attempt}/{max_attempts}): {e}. "
+                        f"Retrying in {delay}s..."
+                    )
+                    await asyncio.sleep(delay)
+                else:
+                    logger.error(
+                        f"Failed to send email after {max_attempts} attempts: {e}"
+                    )
 
     async def shutdown(self):
         """Gracefully shut down the bot."""
